@@ -1,22 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"os"
+	"text/template"
+)
+
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseFiles("tpl.gohtml"))
+}
 
 func main() {
-	name := "Shock"
+	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", 42)
 
-	tpl := `
-	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-	<meta charset="UTF-8">
-	<title>HELLO WORLD</title>
-	</head>
-	<body>
-		<h1>` + name + `</h1
-	</body>
-	</head>
-	</html>
-	`
-	fmt.Println(tpl)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
