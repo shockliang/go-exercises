@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hello world</title>
+    <title>Hello Template!</title>
 </head>
 <body>
-    {{$wisdom := .}}
-    <h1>The meaning of life: {{$wisdom}}</h1>
+    <ul>
+        {{range .}}
+        <li>{{.}}</li>
+        {{end}}
+    </ul>
 </body>
 </html>
