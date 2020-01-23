@@ -13,7 +13,7 @@ func init() {
 }
 
 func main() {
-	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", 42)
+	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", `Release self-foucs; embrace other-focus.`)
 
 	if err != nil {
 		log.Fatalln(err)
