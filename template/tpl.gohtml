@@ -5,10 +5,29 @@
     <title>Hello Template!</title>
 </head>
 <body>
-{{index .Words 0}}
-{{index .Words 1}}
-{{index .Words 2}}
-{{.Lname}}
+{{range .}}
+    {{.}}
+{{end}}
+
+{{if .}}
+    Users slice exist
+    {{.}}
+{{end}}
+
+{{range .}}
+    {{if .Name}}
+        Name exist
+        {{.Name}}
+    {{end}}
+{{end}}
+
+{{range .}}
+    {{if and .Name .Admin}}
+        Name exist and Admin was true
+        {{.Name}}
+        {{.Admin}}
+    {{end}}
+{{end}}
 
 </body>
 </html>
