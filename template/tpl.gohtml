@@ -5,12 +5,9 @@
     <title>Hello Template!</title>
 </head>
 <body>
-{{.}}
+{{index . 2}}
+{{index . 0}}
+{{index . 1}}
 
-{{. | fdbl }}
-
-{{. | fdbl | fsq }}
-
-{{. | fdbl | fsq | fsqrt }}
 </body>
 </html>
