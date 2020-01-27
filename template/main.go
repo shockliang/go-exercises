@@ -14,7 +14,15 @@ func init() {
 
 func main() {
 	xs := []string{"zero", "one", "two", "three", "four", "five",}
-	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", xs)
+	data := struct {
+		Words []string
+		Lname string
+	}{
+		xs,
+		"LIANG",
+	}
+
+	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", data)
 
 	if err != nil {
 		log.Fatalln(err)
