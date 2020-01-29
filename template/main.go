@@ -12,34 +12,17 @@ func init() {
 	tpl = template.Must(template.ParseFiles("tpl.gohtml"))
 }
 
-type user struct {
-	Name  string
-	Motto string
-	Admin bool
-}
 
 func main() {
-	u1 := user{
-		Name:  "Buddha",
-		Motto: "The belief of no beliefs",
-		Admin: false,
+	g1 := struct {
+		Score1 int
+		Score2 int
+	}{
+		7,
+		9,
 	}
 
-	u2 := user{
-		Name:  "Gandhi",
-		Motto: "Be the change",
-		Admin: true,
-	}
-
-	u3 := user{
-		Name:  "",
-		Motto: "Nobody",
-		Admin: true,
-	}
-
-	users := []user{u1, u2, u3}
-
-	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", users)
+	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", g1)
 
 	if err != nil {
 		log.Fatalln(err)

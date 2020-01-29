@@ -5,28 +5,20 @@
     <title>Hello Template!</title>
 </head>
 <body>
-{{range .}}
-    {{.}}
+{{if gt .Score1 .Score2}}
+    SCORE1 > SCORE2
 {{end}}
 
-{{if .}}
-    Users slice exist
-    {{.}}
+{{if lt .Score1 .Score2}}
+    SCORE1 < SCORE2
 {{end}}
 
-{{range .}}
-    {{if .Name}}
-        Name exist
-        {{.Name}}
-    {{end}}
+{{if eq .Score1 .Score2}}
+    SCORE1 = SCORE2
 {{end}}
 
-{{range .}}
-    {{if and .Name .Admin}}
-        Name exist and Admin was true
-        {{.Name}}
-        {{.Admin}}
-    {{end}}
+{{if lt .Score1 10}}
+    SCORE1 < 10
 {{end}}
 
 </body>
