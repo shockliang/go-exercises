@@ -9,20 +9,12 @@ import (
 var tpl *template.Template
 
 func init() {
-	tpl = template.Must(template.ParseFiles("tpl.gohtml"))
+	tpl = template.Must(template.ParseGlob("*.gohtml"))
 }
 
 
 func main() {
-	g1 := struct {
-		Score1 int
-		Score2 int
-	}{
-		7,
-		9,
-	}
-
-	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", g1)
+	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", 42)
 
 	if err != nil {
 		log.Fatalln(err)
