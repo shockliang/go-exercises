@@ -6,17 +6,21 @@ import (
 	"text/template"
 )
 
-type course struct {
-	Number, Name, Units string
+type person struct {
+	Name string
+	Age  int
 }
 
-type semester struct {
-	Term    string
-	Courses []course
+func (p person) SomeProcessing() int {
+	return 7
 }
 
-type year struct {
-	Fall, Spring, Summer semester
+func (p person) AgeDbl() int {
+	return p.Age * 2
+}
+
+func (p person) TakesArg(x int) int {
+	return x * 2
 }
 
 var tpl *template.Template
@@ -26,50 +30,12 @@ func init() {
 }
 
 func main() {
-	y := year{
-		Fall: semester{
-			Term: "Fall",
-			Courses: []course{
-				{
-					Number: "CSCI-40",
-					Name:   "Introduction to Programming in Go",
-					Units:  "4",
-				},
-				{
-					Number: "CSCI-130",
-					Name:   "Introduction to Web Programming with Go",
-					Units:  "4",
-				},
-				{
-					Number: "CSCI-140",
-					Name:   "Mobile Apps Using Go",
-					Units:  "4",
-				},
-			},
-		},
-		Spring: semester{
-			Term: "Spring",
-			Courses: []course{
-				{
-					Number: "CSCI-50",
-					Name:   "Advanced Go",
-					Units:  "5",
-				},
-				{
-					Number: "CSCI-190",
-					Name:   "Advanced Web Programming with Go",
-					Units:  "5",
-				},
-				{
-					Number: "CSCI-191",
-					Name:   "Advanced Mobile Apps with Go",
-					Units:  "5",
-				},
-			},
-		},
+	p := person{
+		Name: "Ian Fleming",
+		Age:  56,
 	}
 
-	err := tpl.Execute(os.Stdout, y)
+	err := tpl.Execute(os.Stdout, p)
 
 	if err != nil {
 		log.Fatalln(err)
