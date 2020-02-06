@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
+	"strings"
 )
 
 func main() {
@@ -26,19 +26,28 @@ func main() {
 }
 
 func handle(conn net.Conn) {
-	err := conn.SetDeadline(time.Now().Add(10 * time.Second))
-	if err != nil {
-		log.Println("connection timeout")
-	}
-
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
-		ln := scanner.Text()
-		fmt.Println(ln)
-		fmt.Fprintf(conn, "I heard you say: %s\n", ln)
+		ln := strings.ToLower(scanner.Text())
+		bs := []byte(ln)
+		r := rot13(bs)
+		fmt.Fprintf(conn, "%s - %s\n\n",ln, r)
 	}
 	defer conn.Close()
 
 	// Code never go here
 	fmt.Println("Code got here")
+}
+
+func rot13(bs []byte) []byte {
+	var r13 = make([]byte, len(bs))
+	for i, v := range bs {
+		// ascii 97 ~ 122
+		if v <= 109 {
+			r13[i] = v + 13
+		} else {
+			r13[i] = v - 13
+		}
+	}
+	return  r13
 }
