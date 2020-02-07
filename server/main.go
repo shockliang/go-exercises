@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"strings"
@@ -29,42 +28,37 @@ func main() {
 func handle(conn net.Conn) {
 	defer conn.Close()
 
-	// instructions
-	io.WriteString(conn, "\nIn-Memory Database\n\n"+
-		"USE:\n"+
-		"SET key value \n"+
-		"GET key \n"+
-		"DEL key \n\n"+
-		"EXAMPLE: \n"+
-		"SET fav chocolate \n"+
-		"GET fav \n\n\n")
+	// read request
+	request(conn)
 
-	// read & write
-	data := make(map[string]string)
+	// write response
+	response(conn)
+}
+
+func request(conn net.Conn) {
+	i := 0
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		ln := scanner.Text()
-		fs := strings.Fields(ln)
-		// logic
-		switch fs[0] {
-		case "GET":
-			k:=fs[1]
-			v:=data[k]
-			fmt.Fprintf(conn, "%s\n", v)
-		case "SET":
-			if len(fs) != 3 {
-				fmt.Fprintln(conn, "EXPECTED VALUE")
-				continue
-			}
-			k := fs[1]
-			v := fs[2]
-			data[k] = v
-		case "DEL":
-			k := fs[1]
-			delete(data, k)
-		default:
-			fmt.Fprintln(conn, "INVALID COMMAND")
+		fmt.Println(ln)
+		if i == 0 {
+			// request line
+			m := strings.Fields(ln)[0]
+			fmt.Println("*** METHOD", m)
 		}
-
+		if ln == "" {
+			// headers are done
+			break
+		}
+		i++
 	}
+}
+
+func response(conn net.Conn) {
+	body := `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title></title></head><body><strong>HELLO GO!</strong></body></html>`
+	fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n")
+	fmt.Fprintf(conn, "Content-Lenght: %d\r\n", len(body))
+	fmt.Fprint(conn, "Content-Type: text/html\r\n")
+	fmt.Fprint(conn, "\r\n")
+	fmt.Fprint(conn, body)
 }
