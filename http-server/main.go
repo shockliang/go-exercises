@@ -1,14 +1,26 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 )
 
 type hotdog int
 
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseFiles("index.gohtml"))
+}
+
 func (m hotdog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Some code")
+	err := r.ParseForm()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	tpl.ExecuteTemplate(w, "index.gohtml", r.Form)
 }
 
 func main() {
