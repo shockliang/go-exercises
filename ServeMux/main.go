@@ -8,15 +8,20 @@ import (
 type hotdog int
 
 func (m hotdog) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	switch req.URL.Path {
-	case "/dog":
-		io.WriteString(res, "doggy doggy doggy")
-	case "/cat":
-		io.WriteString(res, "kitty kitty kitty")
-	}
+	io.WriteString(res, "doggy doggy doggy")
+}
+
+type hotcat int
+func (m hotcat) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	io.WriteString(res, "kitty kitty kitty")
 }
 
 func main() {
 	var d hotdog
-	http.ListenAndServe(":8080", d)
+	var c hotcat
+	mux := http.NewServeMux()
+	mux.Handle("/dog/", d)
+	mux.Handle("/cat", c)
+
+	http.ListenAndServe(":8080", mux)
 }
