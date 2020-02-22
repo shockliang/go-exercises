@@ -3,26 +3,32 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 )
 
-type ColorGroup struct {
-	ID     int
-	Name   string
-	Colors []string
+type person struct {
+	First string
+	Last  string
+	age   int
 }
 
 func main() {
-	group := ColorGroup{
-		ID:     1,
-		Name:   "Reds",
-		Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
+	p1 := person{
+		First: "James",
+		Last:  "Bond",
+		age:   32,
+	}
+	p2 := person{
+		First: "Miss",
+		Last:  "Moneypenny",
+		age:   27,
 	}
 
-	b, err := json.Marshal(group)
+	people := []person{p1, p2}
+
+	bs, err := json.Marshal(people)
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Println(err)
 	}
 
-	os.Stdout.Write(b)
+	fmt.Println(string(bs))
 }
