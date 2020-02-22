@@ -8,27 +8,19 @@ import (
 type person struct {
 	First string
 	Last  string
-	age   int
+	Age   int
 }
 
 func main() {
-	p1 := person{
-		First: "James",
-		Last:  "Bond",
-		age:   32,
-	}
-	p2 := person{
-		First: "Miss",
-		Last:  "Moneypenny",
-		age:   27,
-	}
+	s :=`[{"First":"James","Last":"Bond","Age":32},{"First":"Miss","Last":"Moneypenny","Age":27}]`
+	bs := []byte(s)
 
-	people := []person{p1, p2}
+	people := []person{}
 
-	bs, err := json.Marshal(people)
+	err := json.Unmarshal(bs, &people)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println(string(bs))
+	fmt.Println(people)
 }
