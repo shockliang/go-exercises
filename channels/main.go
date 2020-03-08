@@ -1,34 +1,47 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 func main() {
 	eve := make(chan int)
 	odd := make(chan int)
-	quit := make(chan int)
+	fanin := make(chan int)
 
-	go send(eve, odd, quit)
+	go send(eve, odd)
 
-	receive(eve, odd, quit)
+	go receive(eve, odd, fanin)
 
+	for v := range fanin {
+		fmt.Println(v)
+	}
 	fmt.Println("about to exit")
 }
 
-func receive(e, o, q <-chan int) {
-	for {
-		select {
-		case v := <-e:
-			fmt.Println("from the even channel:", v)
-		case v := <-o:
-			fmt.Println("from the odd channel:", v)
-		case v := <-q:
-			fmt.Println("from the quit channel:", v)
-			return
+func receive(e, o <-chan int, fanIn chan<- int) {
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func(){
+		for v := range e {
+			fanIn <- v
 		}
-	}
+		wg.Done()
+	}()
+
+	go func() {
+		for v := range o {
+			fanIn <- v
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+	close(fanIn)
 }
 
-func send(e, o, q chan<- int) {
+func send(e, o chan<- int) {
 	for i := 0; i < 100; i++ {
 		if i%2 == 0 {
 			e <- i
@@ -36,5 +49,7 @@ func send(e, o, q chan<- int) {
 			o <- i
 		}
 	}
-	q <- 0
+
+	close(e)
+	close(o)
 }
