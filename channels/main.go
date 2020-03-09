@@ -1,48 +1,40 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"math/rand"
-	"sync"
+	"runtime"
 	"time"
 )
 
 func main() {
-	c1 := make(chan int)
-	c2 := make(chan int)
-	go populate(c1)
+	ctx, cancel := context.WithCancel(context.Background())
+	fmt.Println("error check 1:", ctx.Err())
+	fmt.Println("num goroutine 1:", runtime.NumGoroutine())
 
-	go fanOutIn(c1, c2)
+	go func() {
+		n:=0
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				n++
+				time.Sleep(time.Millisecond * 200)
+				fmt.Println("working",n)
+			}
+		}
+	}()
 
-	for v := range c2 {
-		fmt.Println(v)
-	}
+	time.Sleep(time.Second*2)
+	fmt.Println("error check 2:",ctx.Err())
+	fmt.Println("num goroutine 2:", runtime.NumGoroutine())
 
-	fmt.Println("about to exit")
-}
+	fmt.Println("about to cancel context")
+	cancel()
 
-func populate(c chan int) {
-	for i := 0; i < 100; i++ {
-		c <- i
-	}
-
-	close(c)
-}
-
-func fanOutIn(c1, c2 chan int) {
-	var wg sync.WaitGroup
-	for v := range c1 {
-		wg.Add(1)
-		go func(v2 int) {
-			c2 <- timeConsumingWork(v2)
-			wg.Done()
-		}(v)
-	}
-	wg.Wait()
-	close(c2)
-}
-
-func timeConsumingWork(val int) int {
-	time.Sleep(time.Microsecond * time.Duration((rand.Intn(500))))
-	return val + rand.Intn(1000)
+	fmt.Println("cancelled context")
+	time.Sleep(time.Second*2)
+	fmt.Println("error check 3:", ctx.Err())
+	fmt.Println("num goroutine 3:", runtime.NumGoroutine())
 }
