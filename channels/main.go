@@ -2,54 +2,47 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
+	"time"
 )
 
 func main() {
-	eve := make(chan int)
-	odd := make(chan int)
-	fanin := make(chan int)
+	c1 := make(chan int)
+	c2 := make(chan int)
+	go populate(c1)
 
-	go send(eve, odd)
+	go fanOutIn(c1, c2)
 
-	go receive(eve, odd, fanin)
-
-	for v := range fanin {
+	for v := range c2 {
 		fmt.Println(v)
 	}
+
 	fmt.Println("about to exit")
 }
 
-func receive(e, o <-chan int, fanIn chan<- int) {
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func(){
-		for v := range e {
-			fanIn <- v
-		}
-		wg.Done()
-	}()
-
-	go func() {
-		for v := range o {
-			fanIn <- v
-		}
-		wg.Done()
-	}()
-
-	wg.Wait()
-	close(fanIn)
-}
-
-func send(e, o chan<- int) {
+func populate(c chan int) {
 	for i := 0; i < 100; i++ {
-		if i%2 == 0 {
-			e <- i
-		} else {
-			o <- i
-		}
+		c <- i
 	}
 
-	close(e)
-	close(o)
+	close(c)
+}
+
+func fanOutIn(c1, c2 chan int) {
+	var wg sync.WaitGroup
+	for v := range c1 {
+		wg.Add(1)
+		go func(v2 int) {
+			c2 <- timeConsumingWork(v2)
+			wg.Done()
+		}(v)
+	}
+	wg.Wait()
+	close(c2)
+}
+
+func timeConsumingWork(val int) int {
+	time.Sleep(time.Microsecond * time.Duration((rand.Intn(500))))
+	return val + rand.Intn(1000)
 }
