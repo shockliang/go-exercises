@@ -1,30 +1,31 @@
 package main
 
-import (
-	"fmt"
-	"log"
-	"os"
-)
+import "fmt"
 
 func main() {
-	f, err := os.Create("log.txt")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer f.Close()
-	log.SetOutput(f)
+	f()
+	fmt.Println("Returned normally from f.")
+}
 
-	f2, err := os.Open("no-file.txt")
-	if err != nil {
-		// err happened open no-file.txt: no such file or directory
-		//fmt.Println("err happened", err)
-		// 2020/03/11 22:14:00 err happened open no-file.txt: no such file or directory
-		//log.Println("err happened", err)
-		//log.Fatalln(err)
-		//log.Panic(err)
-		panic(err)
+func f() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
+
+	fmt.Println("Calling g.")
+	g(0)
+	fmt.Println("Returned normally from g.")
+}
+
+func g(i int) {
+	if i > 3 {
+		fmt.Println("Panicking")
+		panic(fmt.Sprintf("%v", i))
 	}
 
-	defer f2.Close()
-	fmt.Println("check the log.txt file in the directory")
+	defer fmt.Println("Defer in g", i)
+	fmt.Println("Printing in g", i)
+	g(i + 1)
 }
