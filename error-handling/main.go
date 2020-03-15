@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"math"
 )
@@ -15,7 +15,7 @@ func main() {
 
 func mySqrt(f float64) (float64, error) {
 	if f < 0 {
-		return 0, errors.New("square root of negative number")
+		return 0, fmt.Errorf("square root of negative number: %v", f)
 	}
 
 	return math.Sqrt(f), nil
