@@ -1,6 +1,15 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
+
+func ExampleMySum() {
+	fmt.Println(MySum(2,3))
+	// Output:
+	// 5
+}
 
 func TestMySum(t *testing.T) {
 	type test struct {
@@ -16,7 +25,7 @@ func TestMySum(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		x := mySum(v.data...)
+		x := MySum(v.data...)
 		if x != v.answer {
 			t.Error("Expected", v.data, " Got", x)
 		}
