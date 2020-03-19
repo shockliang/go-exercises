@@ -1,8 +1,14 @@
 // My main package
 package main
 
+import (
+	"fmt"
+	"github.com/shockliang/go-exercises/testing-and-bechmarking/saying"
+)
+
 func main() {
 
+	fmt.Println(saying.Greet("Jame"))
 }
 
 // Sum adds an unlimited number of values of type int
