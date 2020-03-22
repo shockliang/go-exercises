@@ -27,5 +27,11 @@ func smudgeImg(w http.ResponseWriter, req *http.Request) {
 	}
 	defer f.Close()
 
-	io.Copy(w, f)
+	fi, err := f.Stat()
+
+	if err != nil {
+		http.Error(w, "file not found", 404)
+	}
+
+	http.ServeContent(w, req, f.Name(), fi.ModTime(), f)
 }
