@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", smudge)
+	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/smudge", smudgeImg)
 	http.ListenAndServe(":8080", nil)
 }
