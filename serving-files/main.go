@@ -6,18 +6,13 @@ import (
 )
 
 func main() {
-	http.Handle("/", http.FileServer(http.Dir(".")))
-	http.HandleFunc("/smudge", smudgeImg)
+	http.Handle("/resources/", http.StripPrefix("/resources", http.FileServer(http.Dir("./assets"))))
+	http.HandleFunc("/smudge", smudge)
 	http.ListenAndServe(":8080", nil)
 }
 
 func smudge(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	io.WriteString(w, `
-		<!-- not serving from our server -->
-		<img src="https://i.insider.com/5df773cefd9db21a1c58b0c4?width=2500&format=jpeg&auto=webp" >`)
+	io.WriteString(w, `<img src="/resources/git.png">`)
 }
 
-func smudgeImg(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w,req, "smudge.jpg")
-}
