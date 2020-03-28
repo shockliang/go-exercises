@@ -13,5 +13,11 @@ func main() {
 
 func foo(w http.ResponseWriter, req *http.Request) {
 	v := req.FormValue("q")
-	io.WriteString(w,"search: " + v)
+	w.Header().Set("Content-type", "text/html; charset=UTF-8")
+	io.WriteString(w, `
+		<form method="POST">
+			<input type="text" name="q">
+			<input type="submit">
+		</form>
+		<br>` + v)
 }
