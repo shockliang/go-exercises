@@ -5,6 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -35,6 +37,18 @@ func foo(w http.ResponseWriter, req *http.Request) {
 		}
 
 		s = string(bs)
+
+		// store on the server
+		dst, err := os.Create(filepath.Join("./user/", h.Filename))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = dst.Write(bs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 	w.Header().Set("Content-type", "text/html; charset=UTF-8")
 	io.WriteString(w, `
