@@ -2,59 +2,36 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
+	"html/template"
 	"net/http"
-	"os"
-	"path/filepath"
 )
+
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseGlob("templates/*"))
+}
 
 func main() {
 	http.HandleFunc("/", foo)
+	http.HandleFunc("/bar", bar)
+	http.HandleFunc("/barred", barred)
 	http.Handle("/favicon", http.NotFoundHandler())
 	http.ListenAndServe(":8080", nil)
 
 }
 
-func foo(w http.ResponseWriter, req *http.Request) {
-	var s string
-	fmt.Println(req.Method)
-	if req.Method == http.MethodPost {
-		// open
-		f, h, err := req.FormFile("q")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer f.Close()
+func foo(w http.ResponseWriter, req *http.Request){
+	fmt.Print("Your request method at foo: ", req.Method, "\n\n")
+}
 
-		fmt.Println("\nfile:", f, "\nheader:", h, "\nerr:", err)
+func bar(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Your request method at bar: ", req.Method)
+	w.Header().Set("Location", "/")
+	w.WriteHeader(http.StatusSeeOther)
+}
 
-		bs, err := ioutil.ReadAll(f)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		s = string(bs)
-
-		// store on the server
-		dst, err := os.Create(filepath.Join("./user/", h.Filename))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		_, err = dst.Write(bs)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}
-	w.Header().Set("Content-type", "text/html; charset=UTF-8")
-	io.WriteString(w, `
-		<form method="POST" enctype=multipart/form-data>
-			<input type="file" name="q">
-			<input type="submit">
-		</form>
-		<br>` + s)
+func barred(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Your request method at barred: ", req.Method)
+	tpl.ExecuteTemplate(w, "index.gohtml", nil)
 }
