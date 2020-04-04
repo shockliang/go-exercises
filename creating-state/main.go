@@ -2,29 +2,32 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 )
 
-var tpl *template.Template
-
-func init() {
-	tpl = template.Must(template.ParseGlob("templates/*"))
-}
-
 func main() {
-	http.HandleFunc("/", foo)
-	http.HandleFunc("/bar", bar)
+	http.HandleFunc("/", set)
+	http.HandleFunc("/read", read)
 	http.Handle("/favicon", http.NotFoundHandler())
 	http.ListenAndServe(":8080", nil)
-
 }
 
-func foo(w http.ResponseWriter, req *http.Request){
-	fmt.Print("Your request method at foo: ", req.Method, "\n\n")
+func set(w http.ResponseWriter, req *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:"my-cookie",
+		Value: "some value",
+	})
+
+	fmt.Fprintln(w, "Cookie written - check your browser")
+	fmt.Fprintln(w, "in chrome go to dev tools / application /cookies")
 }
 
-func bar(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("Your request method at bar: ", req.Method)
-	http.Redirect(w, req, "/", http.StatusMovedPermanently)
+func read(w http.ResponseWriter, req *http.Request) {
+	c, err := req.Cookie("my-cookie")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNoContent)
+		return
+	}
+
+	fmt.Fprintln(w, "Your cookie:", c)
 }
