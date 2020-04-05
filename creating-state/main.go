@@ -2,16 +2,31 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
 func main() {
-	http.HandleFunc("/", set)
+	http.HandleFunc("/", index)
+	http.HandleFunc("/set", set)
 	http.HandleFunc("/read", read)
-	http.HandleFunc("/abundance", abundance)
+	http.HandleFunc("/expire", expire)
 	http.Handle("/favicon", http.NotFoundHandler())
 	http.ListenAndServe(":8080", nil)
+}
+
+func index(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintln(w, `<h1><a href="/set"">set a cookie</a></h1>`)
+}
+
+func expire(w http.ResponseWriter, req *http.Request) {
+	c, err := req.Cookie("my-cookie")
+	if err != nil {
+		http.Redirect(w, req, "/set", http.StatusSeeOther)
+		return
+	}
+	c.MaxAge = -1 // delete cookie
+	http.SetCookie(w, c)
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func set(w http.ResponseWriter, req *http.Request) {
@@ -19,45 +34,14 @@ func set(w http.ResponseWriter, req *http.Request) {
 		Name:  "my-cookie",
 		Value: "some value",
 	})
-
-	fmt.Fprintln(w, "Cookie written - check your browser")
-	fmt.Fprintln(w, "in chrome go to dev tools / application /cookies")
+	fmt.Fprintln(w, `<h1><a href="/read">read</a></h1>`)
 }
 
 func read(w http.ResponseWriter, req *http.Request) {
-	c1, err := req.Cookie("my-cookie")
+	c, err := req.Cookie("my-cookie")
 	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Fprintln(w, "Your cookie #1:", c1)
+		http.Redirect(w, req, "/set", http.StatusSeeOther)
+		return
 	}
-
-	c2, err := req.Cookie("general")
-	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Fprintln(w, "Your cookie #2:", c2)
-	}
-
-	c3, err := req.Cookie("specific")
-	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Fprintln(w, "Your cookie #3:", c3)
-	}
-}
-
-func abundance(w http.ResponseWriter, req *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name:  "general",
-		Value: "general value",
-	})
-
-	http.SetCookie(w, &http.Cookie{
-		Name:  "specific",
-		Value: "specific value",
-	})
-
-	fmt.Fprintln(w, "Cookie written - check your browser")
-	fmt.Fprintln(w, "in chrome go to dev tools / application /cookies")
+	fmt.Fprintf(w, `<h1>Your cookie:<br> %v</h1><h1><a href="/expire">expire</a></h1>`, c)
 }
