@@ -8,6 +8,7 @@ import (
 
 type user struct {
 	UserName string
+	Password string
 	First    string
 	Last     string
 }
@@ -21,54 +22,59 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", foo)
+	http.HandleFunc("/", index)
 	http.HandleFunc("/bar", bar)
+	http.HandleFunc("/signup", signup)
 	http.ListenAndServe(":8080", nil)
 }
 
-func foo(w http.ResponseWriter, req *http.Request) {
-	c, err := req.Cookie("session")
-	if err != nil {
-		sID := uuid.New()
-		c = &http.Cookie{
-			Name: "session",
-			Value: sID.String(),
-		}
-		http.SetCookie(w, c)
+func signup(w http.ResponseWriter, req *http.Request) {
+	if alreadyLoggedIn(req) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
 	}
 
-	// if the user exists already, get user
-	var u user
-	if un, ok := dbSessions[c.Value]; ok {
-		u = dbUsers[un]
-	}
-
-	// process from submission
 	if req.Method == http.MethodPost {
 		un := req.FormValue("username")
+		p := req.FormValue("password")
 		f := req.FormValue("firstname")
 		l := req.FormValue("lastname")
-		u = user {un, f, l}
+
+		if _, ok := dbUsers[un]; ok {
+			http.Error(w, "Username already taken", http.StatusForbidden)
+			return
+		}
+
+		// create session
+		sID := uuid.New()
+		c := &http.Cookie{
+			Name:  "session",
+			Value: sID.String()}
+		http.SetCookie(w, c)
 		dbSessions[c.Value] = un
+
+		// store user in dbUsers
+		u := user{un, p, f, l}
 		dbUsers[un] = u
+
+		// redirect
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
 	}
 
+	tpl.ExecuteTemplate(w, "signup.gohtml", nil)
+}
+
+func index(w http.ResponseWriter, req *http.Request) {
+	u := getUser(w, req)
 	tpl.ExecuteTemplate(w, "index.gohtml", u)
 }
 
 func bar(w http.ResponseWriter, req *http.Request) {
-	c ,err := req.Cookie("session")
-	if err != nil {
+	u := getUser(w, req)
+	if !alreadyLoggedIn(req) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
-
-	un, ok := dbSessions[c.Value]
-	if !ok {
-		http.Redirect(w, req, "/", http.StatusSeeOther)
-		return
-	}
-
-	u := dbUsers[un]
 	tpl.ExecuteTemplate(w, "bar.gohtml", u)
 }
