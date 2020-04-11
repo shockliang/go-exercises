@@ -29,7 +29,27 @@ func main() {
 	http.HandleFunc("/bar", bar)
 	http.HandleFunc("/signup", signup)
 	http.HandleFunc("/login", login)
+	http.HandleFunc("/logout", logout)
 	http.ListenAndServe(":8080", nil)
+}
+
+func logout(w http.ResponseWriter, req *http.Request) {
+	if !alreadyLoggedIn(req) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+
+	c, _ := req.Cookie("session")
+	// delete the session
+	delete(dbSessions, c.Value)
+	// remove the cookie
+	c = &http.Cookie{
+		Name:   "session",
+		Value:  "",
+		MaxAge: -1,
+	}
+	http.SetCookie(w, c)
+	http.Redirect(w, req, "/", http.StatusEarlyHints)
 }
 
 func login(w http.ResponseWriter, req *http.Request) {
