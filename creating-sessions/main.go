@@ -5,6 +5,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"net/http"
+	"time"
 )
 
 type user struct {
@@ -15,13 +16,21 @@ type user struct {
 	Role     string
 }
 
+type session struct {
+	un           string
+	lastActivity time.Time
+}
+
 var tpl *template.Template
-var dbUsers = map[string]user{}      // user id, user
-var dbSessions = map[string]string{} //session id, user id
+var dbUsers = map[string]user{}       // user id, user
+var dbSessions = map[string]session{} //session id, user id
+var dbSessionsCleaned time.Time
+
+const sessionLength int = 30
 
 func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
-	bs, _ := bcrypt.GenerateFromPassword([]byte("password", ), bcrypt.MinCost)
+	bs, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
 	dbUsers["test@test.com"] = user{"test@test.com", bs, "James", "Bond", "007"}
 }
 
@@ -50,7 +59,11 @@ func logout(w http.ResponseWriter, req *http.Request) {
 		MaxAge: -1,
 	}
 	http.SetCookie(w, c)
-	http.Redirect(w, req, "/", http.StatusEarlyHints)
+
+	if time.Now().Sub(dbSessionsCleaned) > (time.Second * 30) {
+		go cleanSessions()
+	}
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func login(w http.ResponseWriter, req *http.Request) {
@@ -80,7 +93,7 @@ func login(w http.ResponseWriter, req *http.Request) {
 		sID := uuid.New()
 		c := &http.Cookie{Name: "session", Value: sID.String()}
 		http.SetCookie(w, c)
-		dbSessions[c.Value] = un
+		dbSessions[c.Value] = session{un, time.Now()}
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
@@ -111,7 +124,7 @@ func signup(w http.ResponseWriter, req *http.Request) {
 			Name:  "session",
 			Value: sID.String()}
 		http.SetCookie(w, c)
-		dbSessions[c.Value] = un
+		dbSessions[c.Value] = session{un, time.Now()}
 
 		// store user in dbUsers
 		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
@@ -132,6 +145,7 @@ func signup(w http.ResponseWriter, req *http.Request) {
 
 func index(w http.ResponseWriter, req *http.Request) {
 	u := getUser(w, req)
+	showSessions()
 	tpl.ExecuteTemplate(w, "index.gohtml", u)
 }
 
