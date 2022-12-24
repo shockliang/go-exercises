@@ -1,27 +1,56 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"unicode"
+)
 
-func add(lhs, rhs int) int {
-	return lhs + rhs
-}
+type LineCallback func(line string)
 
-func compute(lhs, rhs int, op func(lhs, rhs int) int) int {
-	fmt.Printf("Running a compuation with %v & %v\n", lhs, rhs)
-	return op(lhs, rhs)
+func lineIterator(lines []string, callback LineCallback) {
+	for i := 0; i < len(lines); i++ {
+		callback(lines[i])
+	}
 }
 
 func main() {
-	fmt.Println("2 + 2 =", compute(2, 2, add))
-
-	fmt.Println("10 - 2 =", compute(10, 2, func(lhs, rhs int) int {
-		return lhs - rhs
-	}))
-
-	mul := func(lhs, rhs int) int {
-		fmt.Printf("multiplying %v * %v = ", lhs, rhs)
-		return lhs * rhs
+	lines := []string{
+		"There are",
+		"68 letters,",
+		"five digits,",
+		"12 spaces,",
+		"and 4 punctuation marks in these lines of text!",
 	}
 
-	fmt.Println(compute(3, 3, mul))
+	letters := 0
+	numbers := 0
+	punctuation := 0
+	spaces := 0
+
+	lineFunc := func(line string) {
+		for _, r := range line {
+			if unicode.IsLetter(r) {
+				letters++
+			}
+
+			if unicode.IsDigit(r) {
+				numbers++
+			}
+
+			if unicode.IsPunct(r) {
+				punctuation++
+			}
+
+			if unicode.IsSpace(r) {
+				spaces++
+			}
+		}
+	}
+
+	lineIterator(lines, lineFunc)
+
+	fmt.Println(letters, "letters")
+	fmt.Println(numbers, "digits")
+	fmt.Println(spaces, "spaces")
+	fmt.Println(punctuation, "punctuation mark")
 }
