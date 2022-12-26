@@ -1,24 +1,58 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"os"
+	"strconv"
 	"time"
-	"unicode"
 )
 
+func sumFile(rd bufio.Reader) int {
+	sum := 0
+	for {
+		line, err := rd.ReadString('\n')
+
+		if err == io.EOF {
+			return sum
+		}
+
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+
+		num, err := strconv.Atoi(line[:len(line)-1])
+
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+
+		sum += num
+	}
+}
+
 func main() {
-	data := []rune{'a', 'b', 'c', 'd'}
+	files := []string{"num1.txt", "num2.txt", "num3.txt"}
 
-	var capitalized []rune
+	sum := 0
+	for i := 0; i < len(files); i++ {
+		file, err := os.Open(files[i])
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
 
-	capIt := func(r rune) {
-		capitalized = append(capitalized, unicode.ToUpper(r))
-		fmt.Printf("%c done\n", r)
+		rd := bufio.NewReader(file)
+
+		calculate := func() {
+			fileSum := sumFile(*rd)
+			sum += fileSum
+		}
+
+		go calculate()
 	}
 
-	for i := 0; i < len(data); i++ {
-		go capIt(data[i])
-	}
-	time.Sleep(100 * time.Millisecond)
-	fmt.Printf("Capitalized: %c\n", capitalized)
+	time.Sleep(300 * time.Millisecond)
+	fmt.Println(sum)
 }
